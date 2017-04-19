@@ -1,6 +1,7 @@
 package com.github.sipe90.visualizer.gui;
 
 import com.github.sipe90.visualizer.AudioVisualizer;
+import com.github.sipe90.visualizer.capture.AudioCapture;
 import com.github.sipe90.visualizer.util.AudioUtil;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -12,6 +13,9 @@ import javax.sound.sampled.Line;
 import javax.sound.sampled.Mixer;
 
 public class Controller {
+
+    private final AudioVisualizer app;
+    private final AudioCapture capture;
 
     @FXML
     private ComboBox<Mixer> deviceCombo;
@@ -27,6 +31,11 @@ public class Controller {
     private Button captureButton;
 
     private boolean capturing = false;
+
+    public Controller(AudioVisualizer app, AudioCapture capture) {
+        this.app = app;
+        this.capture = capture;
+    }
 
     @FXML
     public void initialize() {
@@ -118,7 +127,7 @@ public class Controller {
     }
 
     public void reloadWindow(ActionEvent actionEvent) {
-        AudioVisualizer.reloadStage();
+        app.reloadStage();
     }
 
     private void initRenderers() {

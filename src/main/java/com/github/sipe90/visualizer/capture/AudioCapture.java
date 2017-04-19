@@ -11,9 +11,14 @@ public class AudioCapture {
     private int readFrames;
     private boolean capturing = false;
 
+    public AudioCapture() {}
+
+    public AudioCapture(ByteRingBuffer buffer) {
+        this(null, buffer);
+    }
+
     public AudioCapture(AudioInputSource source, ByteRingBuffer buffer) {
-        setInputSource(source);
-        setTargetBuffer(buffer);
+        this(source, buffer, 1024);
     }
 
     public AudioCapture(AudioInputSource source, ByteRingBuffer buffer, int readFrames) {
