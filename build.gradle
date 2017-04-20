@@ -7,7 +7,7 @@ repositories {
 
 dependencies {
     compile 'com.google.guava:guava:21.0'
-    compile files('lib/TarsosDSP-2.4.jar')
+    compile files('src/main/lib/TarsosDSP-2.4.jar')
     testCompile 'junit:junit:4.12'         
 }
 
