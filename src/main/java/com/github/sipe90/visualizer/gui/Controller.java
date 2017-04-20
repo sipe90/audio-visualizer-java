@@ -2,7 +2,9 @@ package com.github.sipe90.visualizer.gui;
 
 import com.github.sipe90.visualizer.AudioVisualizer;
 import com.github.sipe90.visualizer.capture.AudioCapture;
+import com.github.sipe90.visualizer.capture.AudioCaptureException;
 import com.github.sipe90.visualizer.util.AudioUtil;
+import com.github.sipe90.visualizer.util.GuiUtil;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -85,19 +87,19 @@ public class Controller {
 
         if (!capturing) {
             if (deviceCombo.getSelectionModel().isEmpty()) {
-                // TODO: Error msg
+                GuiUtil.showInfoDialog("Could not start capture", null, "Please select input device.");
                 return;
             }
             if (sampleRateList.getSelectionModel().isEmpty()) {
-                // TODO: Error msg
+                GuiUtil.showInfoDialog("Could not start capture", null, "Please select sample rate.");
                 return;
             }
             if (sampleSizeList.getSelectionModel().isEmpty()) {
-                // TODO: Error msg
+                GuiUtil.showInfoDialog("Could not start capture", null, "Please select the sample size.");
                 return;
             }
             if (channelsList.getSelectionModel().isEmpty()) {
-                // TODO: Error msg
+                GuiUtil.showInfoDialog("Could not start capture", null, "Please select the amount of channels.");
                 return;
             }
 
@@ -111,15 +113,15 @@ public class Controller {
             int selectedSize = AudioUtil.getSampleSizes()[selectedSizeIdx];
             int selectedChannels = selectedChannelsIdx == 0 ? 1 : 2;
 
-            System.out.println(mixer.getMixerInfo().getName() + ", " + selectedRate + ", " + selectedSize + ", " + selectedChannels);
+            try {
+                capture.startCapture(mixer, selectedRate, selectedSize, selectedChannels);
+                capturing = true;
+            } catch (AudioCaptureException e) {
+                GuiUtil.showWarningDialog("Could not start capture", null, e.getLocalizedMessage());
+            }
 
-            //TODO: Start capture
-            System.out.println("Started capturing");
-
-            capturing = true;
          } else {
-            //TODO: Stop capture
-            System.out.println("Stopped capturing");
+            capture.stopCapture();
             capturing = false;
         }
 

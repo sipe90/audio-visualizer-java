@@ -1,81 +1,54 @@
 package com.github.sipe90.visualizer.capture;
 
+import be.tarsos.dsp.AudioDispatcher;
+import be.tarsos.dsp.io.TarsosDSPAudioInputStream;
+import be.tarsos.dsp.io.jvm.AudioDispatcherFactory;
+import be.tarsos.dsp.io.jvm.JVMAudioInputStream;
+import be.tarsos.dsp.util.fft.FFT;
+import be.tarsos.dsp.util.fft.HammingWindow;
 import com.github.sipe90.visualizer.util.ByteRingBuffer;
 
+import javax.sound.sampled.*;
+import java.net.Socket;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.PriorityBlockingQueue;
 
 public class AudioCapture {
 
-    private AudioInputSource source;
-    private ByteRingBuffer buffer;
-    private int readFrames;
-    private boolean capturing = false;
+    private AudioDispatcher dispatcher;
 
     public AudioCapture() {}
 
-    public AudioCapture(ByteRingBuffer buffer) {
-        this(null, buffer);
-    }
+    public void startCapture(Mixer mixer, int sampleRate, int sampleSize, int channels) {
 
-    public AudioCapture(AudioInputSource source, ByteRingBuffer buffer) {
-        this(source, buffer, 1024);
-    }
+        AudioFormat format = new AudioFormat(sampleRate, sampleSize, channels, true, true);
+        DataLine.Info info = new DataLine.Info(TargetDataLine.class, format);
 
-    public AudioCapture(AudioInputSource source, ByteRingBuffer buffer, int readFrames) {
-        setInputSource(source);
-        setTargetBuffer(buffer);
-        setReadFrames(readFrames);
-    }
+        if (!mixer.isLineSupported(info)) {
+            throw new AudioCaptureException("This audio format is not supported by the mixer. Please choose another format.");
+        }
 
-    public void setInputSource(AudioInputSource source) {
-        this.source = source;
-    }
+        try {
+            TargetDataLine line = (TargetDataLine) mixer.getLine(info);
+            line.open(format, 1024);
+            line.start();
+            AudioInputStream stream = new AudioInputStream(line);
+            TarsosDSPAudioInputStream audioStream = new JVMAudioInputStream(stream);
+            dispatcher = new AudioDispatcher(audioStream,1024,512);
 
-    public void setTargetBuffer(ByteRingBuffer buffer) {
-        this.buffer = buffer;
-    }
+            dispatcher.addAudioProcessor(new FFTAudioProcessor(1024, new HammingWindow()));
+        } catch (LineUnavailableException e) {
+            throw new AudioCaptureException(e);
+        }
 
-    public void setReadFrames(int readFrames) {
-        this.readFrames = readFrames;
-    }
-
-    public void startCapture() {
-
-        String threadName = "CaptureWorker-" + source.getName();
-
-        source.open();
-        capturing = true;
-
-            Runnable task = () -> {
-                int bytesToRead = readFrames * source.getFrameSize();
-
-                try {
-                    source.start();
-
-                    Thread.sleep(1000);
-
-                    while (capturing && source.isOpen()) {
-                        byte[] bytes = new byte[bytesToRead];
-                        int actualRead = source.read(bytes, bytesToRead);
-                        buffer.write(bytes, 0, actualRead);
-                    }
-                    source.stop();
-                    System.out.println("Thread " + threadName + " stopped");
-                } catch (Exception e) {
-                    System.err.println("Exception raised in thread " + threadName);
-                    e.printStackTrace();
-                } finally {
-                    capturing = false;
-                    source.close();
-                }
-            };
-
-        Thread worker = new Thread(task, threadName);
+        String threadName = "CaptureWorker";
+        Thread worker = new Thread(dispatcher, threadName);
         worker.start();
     }
 
     public void stopCapture() {
-        capturing = false;
+        dispatcher.stop();
     }
 
 }

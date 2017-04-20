@@ -22,22 +22,11 @@ public class AudioUtil {
         return availableMixers;
     }
 
-    public static void debugPrintMixerInfo() {
-        for (Mixer.Info info : AudioSystem.getMixerInfo()) {
-            System.out.println(info);
-            Mixer mixer = AudioSystem.getMixer(info);
-            for (Line.Info lineInfo : mixer.getSourceLineInfo())
-                System.out.println("\t Source line: " + lineInfo);
-            for (Line.Info lineInfo : mixer.getTargetLineInfo())
-                System.out.println("\t Target line: " + lineInfo);
-        }
-    }
-
     public static Integer[] getSampleRates() {
         return new Integer[]{8000, 11025, 16000, 22050, 44100, 48000, 96000, 192000};
     }
 
     public static Integer[] getSampleSizes() {
-        return new Integer[]{24, 16, 8};
+        return new Integer[]{8, 16, 24};
     }
 }

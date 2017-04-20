@@ -1,27 +1,16 @@
 package com.github.sipe90.visualizer;
 
 import com.github.sipe90.visualizer.capture.AudioCapture;
-import com.github.sipe90.visualizer.capture.AudioInputSource;
-import com.github.sipe90.visualizer.capture.DataLineInputSource;
 import com.github.sipe90.visualizer.gui.Controller;
-import com.github.sipe90.visualizer.util.AudioUtil;
 import com.github.sipe90.visualizer.util.ByteRingBuffer;
 import javafx.application.Application;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
-import javax.sound.sampled.*;
 import java.io.IOException;
-import java.net.URI;
 import java.net.URL;
-import java.util.List;
 
 public class AudioVisualizer extends Application {
 
@@ -36,8 +25,7 @@ public class AudioVisualizer extends Application {
     public void start(Stage primaryStage) throws IOException {
         this.primaryStage = primaryStage;
 
-        ByteRingBuffer buffer = new ByteRingBuffer(8192);
-        AudioCapture capture = new AudioCapture(buffer);
+        AudioCapture capture = new AudioCapture();
         Controller controller = new Controller(this, capture);
 
         URL windowFxml = AudioVisualizer.class.getResource("/window.fxml");
