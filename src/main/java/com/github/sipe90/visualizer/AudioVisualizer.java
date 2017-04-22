@@ -66,6 +66,11 @@ public class AudioVisualizer extends Application {
         primaryLoader.setController(primaryController);
         primaryWindow.setTitle("Audio Visualizer");
 
+        primaryWindow.setOnCloseRequest((event -> {
+            capture.stopCapture();
+            debugWindow.close();
+        }));
+
         reloadStage(primaryLoader, primaryWindow);
         primaryWindow.show();
     }
