@@ -18,7 +18,10 @@
                         <KeyCodeCombination alt="UP" code="R" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
                      </accelerator>
                   </MenuItem>
-                  <CheckMenuItem fx:id="debugCheck" mnemonicParsing="false" onAction="#toggleDebug" text="Debug" />
+                  <CheckMenuItem fx:id="debugCheck" mnemonicParsing="false" onAction="#toggleDebug" text="Debug">
+                     <accelerator>
+                        <KeyCodeCombination alt="UP" code="D" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                     </accelerator></CheckMenuItem>
               <MenuItem mnemonicParsing="false" text="Close" />
             </items>
           </Menu>

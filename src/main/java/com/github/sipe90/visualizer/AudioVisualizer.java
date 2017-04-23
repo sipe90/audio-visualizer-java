@@ -67,8 +67,8 @@ public class AudioVisualizer extends Application {
         primaryWindow.setTitle("Audio Visualizer");
 
         primaryWindow.setOnCloseRequest((event -> {
-            capture.stopCapture();
-            debugWindow.close();
+            if (capture != null && capture.isCapturing()) capture.stopCapture();
+            if (debug) debugWindow.close();
         }));
 
         reloadStage(primaryLoader, primaryWindow);
@@ -87,6 +87,10 @@ public class AudioVisualizer extends Application {
         debugWindow.setOnCloseRequest((event -> primaryController.resetDebugCheck()));
 
         reloadStage(debugLoader, debugWindow);
+
+        debugWindow.setX(primaryWindow.getX() + 40);
+        debugWindow.setY(primaryWindow.getY() + 40);
+
         debugWindow.show();
     }
 
