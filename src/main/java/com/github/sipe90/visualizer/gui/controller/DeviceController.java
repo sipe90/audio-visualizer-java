@@ -1,8 +1,9 @@
-package com.github.sipe90.visualizer.gui;
+package com.github.sipe90.visualizer.gui.controller;
 
 import com.github.sipe90.visualizer.AudioVisualizer;
 import com.github.sipe90.visualizer.capture.AudioCapture;
 import com.github.sipe90.visualizer.capture.AudioCaptureException;
+import com.github.sipe90.visualizer.gui.Components;
 import com.github.sipe90.visualizer.util.AudioUtil;
 import com.github.sipe90.visualizer.util.GuiUtil;
 import javafx.event.ActionEvent;
@@ -14,12 +15,8 @@ import javax.sound.sampled.DataLine;
 import javax.sound.sampled.Line;
 import javax.sound.sampled.Mixer;
 
-public class PrimaryController {
+public class DeviceController extends WindowController {
 
-    private final AudioVisualizer app;
-    private final AudioCapture capture;
-
-    @FXML private CheckMenuItem debugCheck;
     @FXML private ComboBox<Mixer> deviceCombo;
     @FXML private ListView<AudioFormat> formatList;
     @FXML private ListView<String> sampleRateList;
@@ -29,15 +26,14 @@ public class PrimaryController {
 
     private boolean capturing = false;
 
-    public PrimaryController(AudioVisualizer app, AudioCapture capture) {
-        this.app = app;
-        this.capture = capture;
+    public DeviceController(AudioVisualizer app, AudioCapture capture) {
+        super(app, capture);
+        capturing = capture.isCapturing();
     }
 
-    @FXML
-    public void initialize() {
+    @Override
+    protected void init() {
 
-        assert debugCheck != null : "CheckMenuItem fx:id=\"debugCheck\" was not injected: check your FXML file.";
         assert deviceCombo != null : "ComboBox fx:id=\"deviceCombo\" was not injected: check your FXML file.";
         assert formatList != null : "ListView fx:id=\"formatList\" was not injected: check your FXML file.";
         assert sampleRateList != null : "Button fx:id=\"sampleRateList\" was not injected: check your FXML file.";
@@ -47,7 +43,8 @@ public class PrimaryController {
 
         initRenderers();
 
-        resetDebugCheck();
+        updateCaptureButton();
+
         deviceCombo.getItems().addAll(AudioUtil.getSupportedMixers());
 
         for (int rate : AudioUtil.getSampleRates()) {
@@ -66,6 +63,10 @@ public class PrimaryController {
         sampleRateList.getSelectionModel().selectFirst();
         sampleSizeList.getSelectionModel().selectFirst();
         channelsList.getSelectionModel().selectFirst();
+    }
+
+    private void updateCaptureButton() {
+        captureButton.setText(capturing ? "Stop" : "Start");
     }
 
     public void selectDevice(ActionEvent actionEvent) {
@@ -122,19 +123,7 @@ public class PrimaryController {
             capturing = false;
         }
 
-        captureButton.setText(capturing ? "Stop" : "Start");
-    }
-
-    public void toggleDebug(ActionEvent actionEvent) {
-        app.setDebug(debugCheck.isSelected());
-    }
-
-    public void resetDebugCheck() {
-        debugCheck.setSelected(false);
-    }
-
-    public void reloadWindow(ActionEvent actionEvent) {
-        app.reloadPrimaryStage();
+        updateCaptureButton();
     }
 
     private void initRenderers() {

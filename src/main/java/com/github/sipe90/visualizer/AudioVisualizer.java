@@ -1,8 +1,8 @@
 package com.github.sipe90.visualizer;
 
 import com.github.sipe90.visualizer.capture.AudioCapture;
-import com.github.sipe90.visualizer.gui.DebugController;
-import com.github.sipe90.visualizer.gui.PrimaryController;
+import com.github.sipe90.visualizer.gui.controller.ControllerFactory;
+import com.github.sipe90.visualizer.gui.controller.MainController;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -21,9 +21,6 @@ public class AudioVisualizer extends Application {
 
     private FXMLLoader primaryLoader;
     private FXMLLoader debugLoader;
-
-    private PrimaryController primaryController;
-    private DebugController debugController;
 
     private boolean debug;
 
@@ -52,6 +49,8 @@ public class AudioVisualizer extends Application {
     public void start(Stage primaryStage) throws IOException {
         this.primaryWindow = primaryStage;
 
+        setUserAgentStylesheet(STYLESHEET_MODENA);
+
         initPrimaryWindow( );
         if (debug) {
             initDebugWindow();
@@ -59,16 +58,17 @@ public class AudioVisualizer extends Application {
     }
 
     private void initPrimaryWindow() {
-        URL windowFxml = AudioVisualizer.class.getResource("/window/window.fxml");
+        URL windowFxml = AudioVisualizer.class.getResource("/window/main.fxml");
 
-        primaryController = new PrimaryController(this, capture);
         primaryLoader = new FXMLLoader(windowFxml);
-        primaryLoader.setController(primaryController);
+        primaryLoader.setControllerFactory(new ControllerFactory(this, capture));
+
         primaryWindow.setTitle("Audio Visualizer");
 
         primaryWindow.setOnCloseRequest((event -> {
-            if (capture != null && capture.isCapturing()) capture.stopCapture();
-            if (debug) debugWindow.close();
+            if (capture != null && capture.isCapturing())
+                capture.stopCapture();
+            destroyDebugWindow();
         }));
 
         reloadStage(primaryLoader, primaryWindow);
@@ -77,14 +77,16 @@ public class AudioVisualizer extends Application {
 
     private void initDebugWindow() {
         debugWindow = new Stage();
-        debugController = new DebugController(this, capture);
 
         URL debugFxml = AudioVisualizer.class.getResource("/window/debug.fxml");
         debugLoader = new FXMLLoader(debugFxml);
-        debugLoader.setController(debugController);
+        debugLoader.setControllerFactory(new ControllerFactory(this, capture));
         debugWindow.setTitle("Debug");
 
-        debugWindow.setOnCloseRequest((event -> primaryController.resetDebugCheck()));
+        debugWindow.setOnCloseRequest((event -> {
+            debug = false;
+            ((MainController)primaryLoader.getController()).updateDebugCheck();
+        }));
 
         reloadStage(debugLoader, debugWindow);
 
@@ -95,8 +97,9 @@ public class AudioVisualizer extends Application {
     }
 
     private void destroyDebugWindow() {
-        debugWindow.close();
-        debugController = null;
+        if (debugWindow != null) {
+            debugWindow.close();
+        }
     }
 
     private void checkArgs(List<String> args) {
@@ -113,6 +116,10 @@ public class AudioVisualizer extends Application {
             return 1;
         }
         throw new IllegalArgumentException("Unknown argument: " + arg);
+    }
+
+    public boolean isDebug() {
+        return debug;
     }
 
     public void setDebug(boolean debug) {
@@ -138,10 +145,18 @@ public class AudioVisualizer extends Application {
     private void reloadStage(FXMLLoader loader, Stage stage) {
         try {
             loader.setRoot(null);
+            loader.setController(null);
             VBox root = loader.load();
             stage.setScene(new Scene(root));
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    public void reloadStages() {
+        reloadPrimaryStage();
+        if (debug) {
+            reloadDebugStage();
         }
     }
 }
