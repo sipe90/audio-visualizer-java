@@ -113,16 +113,19 @@ public class DeviceController extends WindowController {
 
             try {
                 capture.startCapture(mixer, selectedRate, selectedSize, selectedChannels);
-                capturing = true;
+                setCapturing(true);
             } catch (AudioCaptureException e) {
                 GuiUtil.showWarningDialog("Could not start capture", null, e.getLocalizedMessage());
             }
 
          } else {
             capture.stopCapture();
-            capturing = false;
+            setCapturing(false);
         }
+    }
 
+    private void setCapturing(boolean capturing) {
+        this.capturing = capturing;
         updateCaptureButton();
     }
 

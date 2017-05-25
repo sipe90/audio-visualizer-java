@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.chart.*?>
+<?import javafx.scene.input.*?>
+<?import javafx.scene.*?>
+<?import javafx.geometry.*?>
+<?import java.lang.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox alignment="TOP_CENTER" prefHeight="800.0" prefWidth="720.0" spacing="10.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.github.sipe90.visualizer.gui.controller.DebugController">
+   <children>
+      <BarChart fx:id="spectrumChart" animated="false" barGap="1.0" legendVisible="false" title="Audio spectrum">
+        <xAxis>
+          <CategoryAxis animated="false" label="Bin" side="BOTTOM" />
+        </xAxis>
+        <yAxis>
+          <NumberAxis animated="false" autoRanging="false" label="Amplitude" side="LEFT" tickUnit="0.1" upperBound="1.0" />
+        </yAxis>
+      </BarChart>
+      <LineChart fx:id="signalChart" animated="false" legendVisible="false" title="Audio signal">
+        <xAxis>
+          <CategoryAxis animated="false" autoRanging="false" label="Time" side="BOTTOM" />
+        </xAxis>
+        <yAxis>
+          <NumberAxis autoRanging="false" label="Amplitude" lowerBound="-1.0" side="LEFT" upperBound="1.0" />
+        </yAxis>
+      </LineChart>
+   </children>
+
+</VBox>
