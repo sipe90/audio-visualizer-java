@@ -25,7 +25,7 @@
                      </children>
                   </HBox>
                   <Button fx:id="captureButton" mnemonicParsing="false" onAction="#toggleCapture" text="Start" />
-                  <Slider fx:id="volumeSlider" blockIncrement="5.0" onDragDetected="#adjustVolume" orientation="VERTICAL" showTickMarks="true" value="80.0" />
+                  <Slider fx:id="volumeSlider" blockIncrement="5.0" onMouseDragged="#adjustVolume" orientation="VERTICAL" showTickMarks="true" value="80.0" />
                </children></VBox>
 			</children>
 		</HBox>
