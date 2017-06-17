@@ -2,6 +2,7 @@ package com.github.sipe90.visualizer.capture;
 
 import be.tarsos.dsp.AudioEvent;
 import be.tarsos.dsp.AudioProcessor;
+import be.tarsos.dsp.util.PitchConverter;
 import be.tarsos.dsp.util.fft.FFT;
 import be.tarsos.dsp.util.fft.WindowFunction;
 import com.google.common.util.concurrent.AtomicDoubleArray;
@@ -37,7 +38,7 @@ public class FFTAudioProcessor implements AudioProcessor {
         this.realSize = fftSize / 2;
         this.sampleRate = sampleRate;
 
-        fft = new FFT(fftSize, windowFunction);
+        fft = new FFT(fftSize, null);
 
         bins = new float[realSize];
         amplitudes = new float[realSize];
@@ -81,7 +82,7 @@ public class FFTAudioProcessor implements AudioProcessor {
 
     private void generateBins(int sampleRate) {
         for (int i = 0; i < bins.length; i++) {
-            bins[i] = i * sampleRate / fftSize;
+            bins[i] = (float)fft.binToHz(i, sampleRate);
         }
     }
 

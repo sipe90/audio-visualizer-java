@@ -40,13 +40,13 @@ public class FileController extends WindowController {
         fileChooser.setTitle("Select audio file");
         fileChooser.setInitialDirectory(new File(System.getProperty("user.home")));
         fileChooser.getExtensionFilters().addAll(
-                new FileChooser.ExtensionFilter("All Files", "*.*"),
+                new FileChooser.ExtensionFilter("All Supported formats", "*.wav", "*.wave", "*.mp3", "*.ogg", "*.ogv,", "*.oga", "*.ogx", "*.ogm", "*.spx", "*.opus", "*.aiff", "*.au", "*.snd"),
                 new FileChooser.ExtensionFilter("Waveform Audio File Format (WAVE/WAV)", "*.wav", "*.wave"),
                 new FileChooser.ExtensionFilter("MPEG-2 Layer 3 (MP3)", "*.mp3"),
                 new FileChooser.ExtensionFilter("Ogg Vorbis/Opus (OGG/OPUS)", "*.ogg", "*.ogv,", "*.oga", "*.ogx", "*.ogm", "*.spx", "*.opus"),
                 new FileChooser.ExtensionFilter("Audio Interchange File Format (AIFF)", "*.aiff"),
-                new FileChooser.ExtensionFilter(" Au file format (AU/SND)", "*.au", "*.snd")
-
+                new FileChooser.ExtensionFilter("Au file format (AU/SND)", "*.au", "*.snd"),
+                new FileChooser.ExtensionFilter("All Files (Try your luck)", "*.*")
         );
     }
 
@@ -63,10 +63,12 @@ public class FileController extends WindowController {
             String filePath = filePathTextField.getText();
             if (Strings.isNullOrEmpty(filePath)) {
                 GuiUtil.showWarningDialog("Could not start capture", null, "Please select an audio file first.");
+                return;
             }
             File file = new File(filePath);
             if (!file.exists() || !file.canRead()) {
                 GuiUtil.showWarningDialog("Could not start capture", null, "File does not exist or cannot be read.");
+                return;
             }
 
             try {
@@ -90,9 +92,7 @@ public class FileController extends WindowController {
         updateCaptureButton();
     }
 
-    public void adjustVolume(MouseEvent mouseEvent) {
-        capture.setVolume(volumeSlider.getValue() / 100);
-    }
+    public void adjustVolume(MouseEvent mouseEvent) { capture.setVolume(volumeSlider.getValue() / 100); }
 
     private void updateCaptureButton() {
         captureButton.setText(capturing ? "Stop" : "Start");

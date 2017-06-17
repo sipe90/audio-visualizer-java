@@ -6,7 +6,6 @@ import be.tarsos.dsp.io.TarsosDSPAudioFormat;
 import be.tarsos.dsp.io.jvm.JVMAudioInputStream;
 
 import javax.sound.sampled.*;
-import java.util.Arrays;
 
 public class AudioPlaybackProcessor implements AudioProcessor {
 
@@ -52,7 +51,6 @@ public class AudioPlaybackProcessor implements AudioProcessor {
 
     @Override
     public boolean process(AudioEvent audioEvent) {
-        int channels = format.getChannels();
         int byteOverlap = audioEvent.getOverlap() * format.getFrameSize();
         int byteStepSize = audioEvent.getBufferSize() * format.getFrameSize() - byteOverlap;
 
@@ -65,18 +63,6 @@ public class AudioPlaybackProcessor implements AudioProcessor {
         if(bytesWritten != byteStepSize){
             System.err.println(String.format("Expected to write %d bytes but only wrote %d bytes",byteStepSize,bytesWritten));
         }
-        return true;
-    }
-
-    public boolean setVolume(double volume) {
-        if (volume < 0.0d || volume > 1.0d) {
-            throw new IllegalArgumentException("Volume must be between 1.0 and 0.0 (was " + volume + ")");
-        }
-        if (!line.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
-            return false;
-        }
-        FloatControl volumeControl = (FloatControl) line.getControl(FloatControl.Type.MASTER_GAIN);
-        volumeControl.setValue(20f * (float) Math.log10(volume));
         return true;
     }
 

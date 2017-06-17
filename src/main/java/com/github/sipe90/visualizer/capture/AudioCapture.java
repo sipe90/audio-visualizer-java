@@ -1,6 +1,7 @@
 package com.github.sipe90.visualizer.capture;
 
 import be.tarsos.dsp.AudioDispatcher;
+import be.tarsos.dsp.GainProcessor;
 import be.tarsos.dsp.io.TarsosDSPAudioInputStream;
 import be.tarsos.dsp.io.jvm.JVMAudioInputStream;
 import be.tarsos.dsp.util.fft.HammingWindow;
@@ -9,32 +10,30 @@ import be.tarsos.transcoder.DefaultAttributes;
 import be.tarsos.transcoder.Streamer;
 import be.tarsos.transcoder.Transcoder;
 import be.tarsos.transcoder.ffmpeg.EncoderException;
-import com.sun.media.sound.JDK13Services;
 
 import javax.sound.sampled.*;
-import javax.sound.sampled.spi.AudioFileReader;
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
 public class AudioCapture {
 
-    private final int bufferSize = 1024; // 1024 * 4;
-    private final int overlap = bufferSize / 2 ;
+    private final int tarsosBufferSize = 512; // 2048;
+    private final int bufferSize = 1024;
+    private final int overlap = tarsosBufferSize / 2 ;
 
     private final Attributes targetFormat = DefaultAttributes.WAV_PCM_S16LE_MONO_44KHZ.getAttributes();
 
     private AudioDispatcher dispatcher;
 
     private FFTAudioProcessor fftProcessor;
-    private AudioPlaybackProcessor audioPlayer;
+    private SignalBuffer signalBuffer;
 
-    public AudioCapture() {
-        List<?> providers = JDK13Services.getProviders(AudioFileReader.class);
-        providers.forEach((provider) -> System.out.println(provider.getClass().getName()));
-    }
+    private AudioPlaybackProcessor audioPlayer;
+    private GainProcessor gainProcessor;
+
+    public AudioCapture() {}
 
     public void startCapture(Mixer mixer, int sampleRate, int sampleSize, int channels) {
 
@@ -47,13 +46,17 @@ public class AudioCapture {
 
         try {
             TargetDataLine line = (TargetDataLine) mixer.getLine(info);
-            line.open(format, bufferSize);
+            line.open(format, tarsosBufferSize);
             line.start();
             AudioInputStream stream = new AudioInputStream(line);
             TarsosDSPAudioInputStream audioStream = new JVMAudioInputStream(stream);
 
-            dispatcher = new AudioDispatcher(audioStream, bufferSize, overlap);
-            fftProcessor = new FFTAudioProcessor(bufferSize, sampleRate, new HammingWindow());
+            dispatcher = new AudioDispatcher(audioStream, tarsosBufferSize, overlap);
+
+            fftProcessor = new FFTAudioProcessor(tarsosBufferSize, sampleRate, new HammingWindow());
+            signalBuffer = new SignalBuffer(bufferSize);
+
+            dispatcher.addAudioProcessor(signalBuffer);
             dispatcher.addAudioProcessor(fftProcessor);
         } catch (LineUnavailableException e) {
             throw new AudioCaptureException(e);
@@ -79,15 +82,18 @@ public class AudioCapture {
             TarsosDSPAudioInputStream tarsosInputStream = new JVMAudioInputStream(inputStream);
             System.out.println(tarsosInputStream.getFormat());
 
-            dispatcher = new AudioDispatcher(tarsosInputStream, bufferSize, overlap);
+            dispatcher = new AudioDispatcher(tarsosInputStream, tarsosBufferSize, overlap);
 
-            fftProcessor = new FFTAudioProcessor(bufferSize, (int)dispatcher.getFormat().getSampleRate(), new HammingWindow());
+            fftProcessor = new FFTAudioProcessor(tarsosBufferSize, (int)dispatcher.getFormat().getSampleRate(), new HammingWindow());
+            signalBuffer = new SignalBuffer(bufferSize);
 
             audioPlayer = new AudioPlaybackProcessor(tarsosInputStream.getFormat());
-            audioPlayer.setVolume(volume);
+            gainProcessor = new GainProcessor(volume);
 
-            dispatcher.addAudioProcessor(audioPlayer);
+            dispatcher.addAudioProcessor(signalBuffer);
             dispatcher.addAudioProcessor(fftProcessor);
+            dispatcher.addAudioProcessor(gainProcessor);
+            dispatcher.addAudioProcessor(audioPlayer);
         } catch (UnsupportedAudioFileException | EncoderException e) {
             throw new AudioCaptureException("The file is not an audio file or it is encoded in an unsupported format. Please choose another file.");
         } catch (IOException e) {
@@ -115,9 +121,11 @@ public class AudioCapture {
         return fftProcessor.getAmplitudes();
     }
 
+    public float[] getBuffer() { return signalBuffer.getBuffer(); }
+
     public void setVolume(double value) {
-        if (audioPlayer != null) {
-            audioPlayer.setVolume(value);
+        if (gainProcessor != null) {
+            gainProcessor.setGain(value);
         }
     }
 }

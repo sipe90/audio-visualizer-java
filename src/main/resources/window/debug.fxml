@@ -10,20 +10,20 @@
 
 <VBox alignment="TOP_CENTER" prefHeight="800.0" prefWidth="720.0" spacing="10.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.github.sipe90.visualizer.gui.controller.DebugController">
    <children>
-      <BarChart fx:id="spectrumChart" animated="false" barGap="1.0" legendVisible="false" title="Audio spectrum">
+      <LineChart fx:id="signalChart" animated="false" createSymbols="false" legendVisible="false" title="Audio signal">
+         <xAxis>
+            <NumberAxis animated="false" autoRanging="false" label="Time" minorTickVisible="false" side="BOTTOM" tickLabelsVisible="false" tickMarkVisible="false" tickUnit="0.0" upperBound="4096.0" />
+         </xAxis>
+         <yAxis>
+            <NumberAxis animated="false" autoRanging="false" label="Amplitude" lowerBound="-1.0" side="LEFT" upperBound="1.0" />
+         </yAxis>
+      </LineChart>
+      <LineChart fx:id="spectrumChart" animated="false" createSymbols="false" legendVisible="false" title="Audio spectrum">
         <xAxis>
-          <CategoryAxis animated="false" label="Bin" side="BOTTOM" />
+          <NumberAxis animated="false" autoRanging="false" label="Bins" side="BOTTOM" tickUnit="0.0" upperBound="512.0" />
         </xAxis>
         <yAxis>
-          <NumberAxis animated="false" autoRanging="false" label="Amplitude" side="LEFT" tickUnit="0.1" upperBound="1.0" />
-        </yAxis>
-      </BarChart>
-      <LineChart fx:id="signalChart" animated="false" legendVisible="false" title="Audio signal">
-        <xAxis>
-          <CategoryAxis animated="false" autoRanging="false" label="Time" side="BOTTOM" />
-        </xAxis>
-        <yAxis>
-          <NumberAxis autoRanging="false" label="Amplitude" lowerBound="-1.0" side="LEFT" upperBound="1.0" />
+          <NumberAxis animated="false" autoRanging="false" label="Amplitude" side="LEFT" tickLabelsVisible="false" tickUnit="0.0" />
         </yAxis>
       </LineChart>
    </children>
