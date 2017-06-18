@@ -14,9 +14,11 @@ public class MainController extends WindowController {
 
     @FXML private VBox deviceTab;
     @FXML private VBox fileTab;
+    @FXML private VBox synthesisTab;
 
     @FXML private DeviceController deviceTabController;
     @FXML private FileController fileTabController;
+    @FXML private SynthesisController synthesisTabController;
 
     public MainController(AudioVisualizer app, AudioCapture capture) {
         super(app, capture);
@@ -28,8 +30,10 @@ public class MainController extends WindowController {
 
         checkComponentInjected(deviceTab, VBox.class, "deviceTab");
         checkComponentInjected(fileTab, VBox.class, "fileTab");
+        checkComponentInjected(synthesisTab, VBox.class, "synthesisTab");
         checkComponentInjected(deviceTabController, DeviceController.class, "deviceTabController");
         checkComponentInjected(fileTabController, FileController.class, "fileTabController");
+        checkComponentInjected(synthesisTabController, SynthesisController.class, "synthesisTabController");
 
         updateDebugCheck();
     }

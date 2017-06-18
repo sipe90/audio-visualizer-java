@@ -1,9 +1,13 @@
 package com.github.sipe90.visualizer.capture;
 
 import be.tarsos.dsp.AudioDispatcher;
+import be.tarsos.dsp.AudioGenerator;
 import be.tarsos.dsp.GainProcessor;
 import be.tarsos.dsp.io.TarsosDSPAudioInputStream;
 import be.tarsos.dsp.io.jvm.JVMAudioInputStream;
+import be.tarsos.dsp.synthesis.AmplitudeLFO;
+import be.tarsos.dsp.synthesis.NoiseGenerator;
+import be.tarsos.dsp.synthesis.SineGenerator;
 import be.tarsos.dsp.util.fft.HammingWindow;
 import be.tarsos.transcoder.Attributes;
 import be.tarsos.transcoder.DefaultAttributes;
@@ -14,10 +18,18 @@ import be.tarsos.transcoder.ffmpeg.EncoderException;
 import javax.sound.sampled.*;
 import java.io.File;
 import java.io.IOException;
+import java.util.EnumSet;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
 public class AudioCapture {
+
+    public enum GENERATOR_TYPE {
+        SINE,
+        LFO,
+        RND
+    }
 
     private final int tarsosBufferSize = 512; // 2048;
     private final int bufferSize = 1024;
@@ -26,6 +38,7 @@ public class AudioCapture {
     private final Attributes targetFormat = DefaultAttributes.WAV_PCM_S16LE_MONO_44KHZ.getAttributes();
 
     private AudioDispatcher dispatcher;
+    private AudioGenerator audioGenerator;
 
     private FFTAudioProcessor fftProcessor;
     private SignalBuffer signalBuffer;
@@ -105,12 +118,56 @@ public class AudioCapture {
         CompletableFuture.runAsync(dispatcher).exceptionally((t) -> { t.printStackTrace(); return null;}).thenApply(finishedCallback);
     }
 
+    public void startGenerate(GENERATOR_TYPE generator, Map<String, Double> generatorParams) {
+        try {
+            audioGenerator = new AudioGenerator(tarsosBufferSize, overlap);
+
+            if (generator == GENERATOR_TYPE.SINE) {
+                if (generatorParams != null) {
+                    double gain = generatorParams.getOrDefault("gain", 1.0d);
+                    double freq = generatorParams.getOrDefault("freq", 440.0d);
+                    audioGenerator.addAudioProcessor(new SineGenerator(gain, freq));
+                } else {
+                    audioGenerator.addAudioProcessor(new SineGenerator());
+                }
+            } else if (generator == GENERATOR_TYPE.RND) {
+                if (generatorParams != null) {
+                    double gain = generatorParams.getOrDefault("gain", 1.0d);
+                    audioGenerator.addAudioProcessor(new NoiseGenerator(gain));
+                } else {
+                    audioGenerator.addAudioProcessor(new NoiseGenerator());
+                }
+            } else if (generator == GENERATOR_TYPE.LFO) {
+                if (generatorParams != null) {
+                    double gainScale = generatorParams.getOrDefault("scale", 0.75d);
+                    double freq = generatorParams.getOrDefault("freq", 1.5d);
+                    audioGenerator.addAudioProcessor(new AmplitudeLFO(freq, gainScale));
+                } else {
+                    audioGenerator.addAudioProcessor(new NoiseGenerator());
+                }
+            }
+
+            fftProcessor = new FFTAudioProcessor(tarsosBufferSize, (int)audioGenerator.getFormat().getSampleRate(), new HammingWindow());
+            signalBuffer = new SignalBuffer(bufferSize);
+            audioPlayer = new AudioPlaybackProcessor(new AudioFormat(44100, 16, 1, true, false));
+
+            audioGenerator.addAudioProcessor(signalBuffer);
+            audioGenerator.addAudioProcessor(fftProcessor);
+            audioGenerator.addAudioProcessor(audioPlayer);
+
+        } catch (LineUnavailableException e) {
+            throw new AudioCaptureException("Unable to play back sound.");
+        }
+    }
+
     public void stopCapture() {
-        dispatcher.stop();
+        if (dispatcher != null) dispatcher.stop();
+        if (audioGenerator != null) audioGenerator.stop();
     }
 
     public boolean isCapturing() {
-        return dispatcher != null && !dispatcher.isStopped();
+        // AudioGenerator has no #isStopped()!!
+        return (dispatcher != null && !dispatcher.isStopped()) || (audioGenerator != null  /* && !audioGenerator.isStopped() */ );
     }
 
     public float[] getFFTBins() {

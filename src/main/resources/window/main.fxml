@@ -46,6 +46,11 @@
                <content>
                   <fx:include fx:id="fileTab" source="file.fxml" />
                </content>
+          </Tab>
+            <Tab closable="false" text="Syntesis">
+                <content>
+                    <fx:include fx:id="synthesisTab" source="synthesis.fxml" />
+                </content>
             </Tab>
         </tabs>
       </TabPane>
