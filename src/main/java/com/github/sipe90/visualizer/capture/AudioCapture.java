@@ -32,8 +32,8 @@ public class AudioCapture {
     }
 
     private final int tarsosBufferSize = 512; // 2048;
-    private final int bufferSize = 1024;
-    private final int overlap = tarsosBufferSize / 2 ;
+    private final int bufferSize = 4096;
+    private final int overlap = tarsosBufferSize / 2;
 
     private final Attributes targetFormat = DefaultAttributes.WAV_PCM_S16LE_MONO_44KHZ.getAttributes();
 

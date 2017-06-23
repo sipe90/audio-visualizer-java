@@ -3,8 +3,6 @@ package com.github.sipe90.visualizer.capture;
 import be.tarsos.dsp.AudioEvent;
 import be.tarsos.dsp.AudioProcessor;
 
-import java.util.Arrays;
-
 public class SignalBuffer implements AudioProcessor {
 
     private final float[] buffer;
@@ -20,20 +18,28 @@ public class SignalBuffer implements AudioProcessor {
 
         int frameOverlap = audioEvent.getOverlap();
         int frameStepSize = audioEvent.getBufferSize() - frameOverlap;
-
-        if(audioEvent.getTimeStamp() == 0){
-            frameOverlap = 0;
-            frameStepSize = audioEvent.getBufferSize();
-        }
+        float[] eventBuffer = audioEvent.getFloatBuffer();
 
         if (frameStepSize > buffer.length) {
             System.err.println("Buffer size is smaller than frame step size!");
             return false;
         }
 
+        // On first event, copy the whole buffer
+        if(audioEvent.getTimeStamp() == 0){
+            // In case the event buffer is bigger than the signal buffer, drop some frames from the beginning
+            int droppedFrames = buffer.length < eventBuffer.length ? eventBuffer.length - buffer.length : 0;
+            synchronized (lock) {
+                System.arraycopy(eventBuffer, droppedFrames, buffer, 0, eventBuffer.length - droppedFrames);
+            }
+            return true;
+        }
+
         synchronized (lock) {
-            System.arraycopy(buffer, 0, buffer, frameStepSize - 1, buffer.length - frameStepSize);
-            System.arraycopy(audioEvent.getFloatBuffer(), frameOverlap, buffer, 0, frameStepSize);
+            System.arraycopy(buffer, 0, buffer, frameStepSize, buffer.length - frameStepSize);
+            for (int i = 0; i < frameStepSize; i++) {
+                buffer[frameStepSize - (i + 1)] = eventBuffer[i + frameOverlap];
+            }
         }
 
         return true;
