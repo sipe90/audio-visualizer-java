@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.canvas.*?>
 <?import javafx.scene.chart.*?>
 <?import javafx.scene.input.*?>
 <?import javafx.scene.*?>
@@ -10,14 +11,7 @@
 
 <VBox alignment="TOP_CENTER" prefHeight="800.0" prefWidth="720.0" spacing="10.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.github.sipe90.visualizer.gui.controller.DebugController">
    <children>
-      <LineChart fx:id="signalChart" animated="false" createSymbols="false" legendVisible="false" title="Audio signal">
-         <xAxis>
-            <NumberAxis animated="false" autoRanging="false" label="Time" minorTickVisible="false" side="BOTTOM" tickLabelsVisible="false" tickMarkVisible="false" tickUnit="0.0" upperBound="4096.0" />
-         </xAxis>
-         <yAxis>
-            <NumberAxis animated="false" autoRanging="false" label="Amplitude" lowerBound="-1.0" side="LEFT" upperBound="1.0" />
-         </yAxis>
-      </LineChart>
+      <Canvas fx:id="signalCanvas" height="400.0" width="700.0" />
       <LineChart fx:id="spectrumChart" animated="false" createSymbols="false" legendVisible="false" title="Audio spectrum">
         <xAxis>
           <NumberAxis animated="false" autoRanging="false" label="Bins" side="BOTTOM" tickUnit="0.0" upperBound="512.0" />

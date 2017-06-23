@@ -6,24 +6,27 @@ import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.chart.BarChart;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.ValueAxis;
 import javafx.scene.chart.XYChart;
+import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
 import javafx.util.Duration;
 
 public class DebugController extends WindowController {
 
     private XYChart.Series<Float, Float> spectrumSeries;
-    private XYChart.Series<Integer, Float> signalSeries;
 
     private Timeline timeline;
     private static final Duration UPDATE_FREQUENCY = Duration.millis(20);
 
     @FXML private LineChart<Float, Float> spectrumChart;
-    @FXML private LineChart<Integer, Float> signalChart;
-    // @FXML private CategoryAxis xAxis;
-    // @FXML private NumberAxis yAxis;
+    @FXML private Canvas signalCanvas;
+
+    private GraphicsContext signalContext;
 
     public DebugController(AudioVisualizer app, AudioCapture capture) {
         super(app, capture);
@@ -31,14 +34,15 @@ public class DebugController extends WindowController {
 
     @Override
     protected void init() {
+        signalContext = signalCanvas.getGraphicsContext2D();
+        signalContext.setStroke(Color.RED);
+        signalContext.setLineWidth(1.0d);
+        signalContext.setFill(Color.BLACK);
+        signalContext.fillRect(0.0d, 0.0d, signalCanvas.getWidth(), signalCanvas.getHeight());
+
         spectrumSeries = new LineChart.Series<>();
-        signalSeries = new LineChart.Series<>();
-
         spectrumChart.getData().add(spectrumSeries);
-        signalChart.getData().add(signalSeries);
-
         spectrumSeries.getNode().setStyle("-fx-stroke-width: 1;");
-        signalSeries.getNode().setStyle("-fx-stroke-width: 1;");
 
         timeline = new Timeline(
                 new KeyFrame(Duration.ZERO, this::updateCharts),
@@ -51,11 +55,10 @@ public class DebugController extends WindowController {
     private void updateCharts(ActionEvent actionEvent) {
         if (!capture.isCapturing()) {
             spectrumSeries.getData().clear();
-            signalSeries.getData().clear();
             return;
         }
 
-        updateSpectrumChart();
+        // updateSpectrumChart();
         updateSignalChart();
     }
 
@@ -78,15 +81,25 @@ public class DebugController extends WindowController {
     private void updateSignalChart() {
         float[] buffer = capture.getBuffer();
 
-        adjustDatapoints(signalSeries, buffer.length);
-        adjustAxisRange((ValueAxis)signalChart.getXAxis(), 0.0d,  (double)buffer.length - 1);
+        final double pointDistance = signalCanvas.getWidth() / buffer.length;
+        final double zeroY = signalCanvas.getHeight() / 2;
+        final double heightScale = zeroY / 1.0d;
 
+        signalContext.clearRect(0, 0, signalCanvas.getWidth(), signalCanvas.getHeight());
+        signalContext.fillRect(0.0d, 0.0d, signalCanvas.getWidth(), signalCanvas.getHeight());
 
-        for (int i = 0; i < buffer.length; i++) {
-            XYChart.Data<Integer, Float> dataPoint = signalSeries.getData().get(i);
-            dataPoint.setXValue(i);
-            dataPoint.setYValue(buffer[i]);
+        signalContext.beginPath();
+        for (int i = 0; i < buffer.length - 1; i++) {
+            int startX = (int)(i * pointDistance);
+            int startY = (int)(heightScale * (buffer[i] + 1.0d));
+            int endX = (int)((i + 1) * pointDistance);
+            int endY = (int)(heightScale * (buffer[i + 1] + 1.0d));
+
+            signalContext.moveTo(startX, startY);
+            signalContext.lineTo(endX, endY);
         }
+        signalContext.closePath();
+        signalContext.stroke();
     }
 
     private <X, Y> void adjustDatapoints(LineChart.Series<X, Y> series, int newSize) {
