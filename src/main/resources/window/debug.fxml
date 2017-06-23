@@ -12,14 +12,7 @@
 <VBox alignment="TOP_CENTER" prefHeight="800.0" prefWidth="720.0" spacing="10.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.github.sipe90.visualizer.gui.controller.DebugController">
    <children>
       <Canvas fx:id="signalCanvas" height="400.0" width="700.0" />
-      <LineChart fx:id="spectrumChart" animated="false" createSymbols="false" legendVisible="false" title="Audio spectrum">
-        <xAxis>
-          <NumberAxis animated="false" autoRanging="false" label="Bins" side="BOTTOM" tickUnit="0.0" upperBound="512.0" />
-        </xAxis>
-        <yAxis>
-          <NumberAxis animated="false" autoRanging="false" label="Amplitude" side="LEFT" tickLabelsVisible="false" tickUnit="0.0" />
-        </yAxis>
-      </LineChart>
+      <Canvas fx:id="spectrumCanvas" height="400.0" layoutX="20.0" layoutY="10.0" width="700.0" />
    </children>
 
 </VBox>

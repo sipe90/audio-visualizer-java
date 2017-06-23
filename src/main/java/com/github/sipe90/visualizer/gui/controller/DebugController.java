@@ -18,15 +18,14 @@ import javafx.util.Duration;
 
 public class DebugController extends WindowController {
 
-    private XYChart.Series<Float, Float> spectrumSeries;
-
     private Timeline timeline;
     private static final Duration UPDATE_FREQUENCY = Duration.millis(20);
 
-    @FXML private LineChart<Float, Float> spectrumChart;
     @FXML private Canvas signalCanvas;
+    @FXML private Canvas spectrumCanvas;
 
     private GraphicsContext signalContext;
+    private GraphicsContext spectrumContext;
 
     public DebugController(AudioVisualizer app, AudioCapture capture) {
         super(app, capture);
@@ -40,9 +39,11 @@ public class DebugController extends WindowController {
         signalContext.setFill(Color.BLACK);
         signalContext.fillRect(0.0d, 0.0d, signalCanvas.getWidth(), signalCanvas.getHeight());
 
-        spectrumSeries = new LineChart.Series<>();
-        spectrumChart.getData().add(spectrumSeries);
-        spectrumSeries.getNode().setStyle("-fx-stroke-width: 1;");
+        spectrumContext = spectrumCanvas.getGraphicsContext2D();
+        spectrumContext.setStroke(Color.RED);
+        spectrumContext.setLineWidth(1.0d);
+        spectrumContext.setFill(Color.BLACK);
+        spectrumContext.fillRect(0.0d, 0.0d, signalCanvas.getWidth(), signalCanvas.getHeight());
 
         timeline = new Timeline(
                 new KeyFrame(Duration.ZERO, this::updateCharts),
@@ -53,40 +54,52 @@ public class DebugController extends WindowController {
     }
 
     private void updateCharts(ActionEvent actionEvent) {
+
+        final double zeroY = signalCanvas.getHeight() / 2;
+
+        signalContext.clearRect(0, 0, signalCanvas.getWidth(), signalCanvas.getHeight());
+        signalContext.fillRect(0.0d, 0.0d, signalCanvas.getWidth(), signalCanvas.getHeight());
+        spectrumContext.clearRect(0, 0, signalCanvas.getWidth(), signalCanvas.getHeight());
+        spectrumContext.fillRect(0.0d, 0.0d, signalCanvas.getWidth(), signalCanvas.getHeight());
+
+        signalContext.setStroke(Color.GRAY);
+
+        signalContext.beginPath();
+        signalContext.moveTo(0, zeroY);
+        signalContext.lineTo( signalCanvas.getWidth(), zeroY);
+        signalContext.stroke();
+        signalContext.closePath();
+
         if (!capture.isCapturing()) {
-            spectrumSeries.getData().clear();
             return;
         }
 
-        // updateSpectrumChart();
-        updateSignalChart();
+        updateSpectrumCanvas();
+        updateSignalCanvas();
     }
 
-    private void updateSpectrumChart() {
+    private void updateSpectrumCanvas() {
         float[] bins = capture.getFFTBins();
         float[] amplitudes = capture.getFFTAmplitudes();
 
         assert  bins.length == amplitudes.length;
 
-        adjustDatapoints(spectrumSeries, bins.length);
-        adjustAxisRange((ValueAxis)spectrumChart.getXAxis(), 0.0d,  (double)bins[bins.length - 1]);
-
+        spectrumContext.beginPath();
         for (int i = 0; i < amplitudes.length; i++) {
-            XYChart.Data<Float, Float> dataPoint = spectrumSeries.getData().get(i);
-            dataPoint.setXValue(bins[i]);
-            dataPoint.setYValue(amplitudes[i]);
+
         }
+        spectrumContext.closePath();
+        spectrumContext.stroke();
     }
 
-    private void updateSignalChart() {
+    private void updateSignalCanvas() {
         float[] buffer = capture.getBuffer();
 
         final double pointDistance = signalCanvas.getWidth() / buffer.length;
         final double zeroY = signalCanvas.getHeight() / 2;
         final double heightScale = zeroY / 1.0d;
 
-        signalContext.clearRect(0, 0, signalCanvas.getWidth(), signalCanvas.getHeight());
-        signalContext.fillRect(0.0d, 0.0d, signalCanvas.getWidth(), signalCanvas.getHeight());
+        signalContext.setStroke(Color.RED);
 
         signalContext.beginPath();
         for (int i = 0; i < buffer.length - 1; i++) {
@@ -101,27 +114,4 @@ public class DebugController extends WindowController {
         signalContext.closePath();
         signalContext.stroke();
     }
-
-    private <X, Y> void adjustDatapoints(LineChart.Series<X, Y> series, int newSize) {
-        int dataPoints = series.getData().size();
-        if (dataPoints == newSize) {
-            return;
-        }
-
-        int sizeAdjustment = newSize - dataPoints;
-        if (sizeAdjustment > 0) {
-            for (int i = 0; i < sizeAdjustment; i++) {
-                series.getData().add(new XYChart.Data<>());
-            }
-        } else {
-            int toRemove = -sizeAdjustment;
-            series.getData().remove(dataPoints - toRemove - 1, dataPoints - 1);
-        }
-    }
-
-    private <T extends  Number> void adjustAxisRange(ValueAxis<T> axis, double min, double max) {
-        axis.setLowerBound(min);
-        axis.setUpperBound(max);
-    }
-
 }
