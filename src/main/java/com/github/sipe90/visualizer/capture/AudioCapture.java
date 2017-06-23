@@ -103,9 +103,9 @@ public class AudioCapture {
             audioPlayer = new AudioPlaybackProcessor(tarsosInputStream.getFormat());
             gainProcessor = new GainProcessor(volume);
 
+            dispatcher.addAudioProcessor(gainProcessor);
             dispatcher.addAudioProcessor(signalBuffer);
             dispatcher.addAudioProcessor(fftProcessor);
-            dispatcher.addAudioProcessor(gainProcessor);
             dispatcher.addAudioProcessor(audioPlayer);
         } catch (UnsupportedAudioFileException | EncoderException e) {
             throw new AudioCaptureException("The file is not an audio file or it is encoded in an unsupported format. Please choose another file.");
