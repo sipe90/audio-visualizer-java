@@ -2,6 +2,7 @@ package com.github.sipe90.visualizer.gui.controller;
 
 import com.github.sipe90.visualizer.AudioVisualizer;
 import com.github.sipe90.visualizer.capture.AudioCapture;
+import com.google.common.primitives.Floats;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.event.ActionEvent;
@@ -34,16 +35,11 @@ public class DebugController extends WindowController {
     @Override
     protected void init() {
         signalContext = signalCanvas.getGraphicsContext2D();
-        signalContext.setStroke(Color.RED);
-        signalContext.setLineWidth(1.0d);
-        signalContext.setFill(Color.BLACK);
-        signalContext.fillRect(0.0d, 0.0d, signalCanvas.getWidth(), signalCanvas.getHeight());
-
         spectrumContext = spectrumCanvas.getGraphicsContext2D();
-        spectrumContext.setStroke(Color.RED);
-        spectrumContext.setLineWidth(1.0d);
-        spectrumContext.setFill(Color.BLACK);
-        spectrumContext.fillRect(0.0d, 0.0d, signalCanvas.getWidth(), signalCanvas.getHeight());
+
+        signalContext.setLineWidth(1.0d);
+
+        drawBackgound();
 
         timeline = new Timeline(
                 new KeyFrame(Duration.ZERO, this::updateCharts),
@@ -54,11 +50,24 @@ public class DebugController extends WindowController {
     }
 
     private void updateCharts(ActionEvent actionEvent) {
+        drawBackgound();
+        if (!capture.isCapturing()) {
+            return;
+        }
 
+        updateSpectrumCanvas();
+        updateSignalCanvas();
+    }
+
+    private void drawBackgound() {
         final double zeroY = signalCanvas.getHeight() / 2;
+
+        spectrumContext.setFill(Color.BLACK);
+        signalContext.setFill(Color.BLACK);
 
         signalContext.clearRect(0, 0, signalCanvas.getWidth(), signalCanvas.getHeight());
         signalContext.fillRect(0.0d, 0.0d, signalCanvas.getWidth(), signalCanvas.getHeight());
+
         spectrumContext.clearRect(0, 0, signalCanvas.getWidth(), signalCanvas.getHeight());
         spectrumContext.fillRect(0.0d, 0.0d, signalCanvas.getWidth(), signalCanvas.getHeight());
 
@@ -69,27 +78,28 @@ public class DebugController extends WindowController {
         signalContext.lineTo( signalCanvas.getWidth(), zeroY);
         signalContext.stroke();
         signalContext.closePath();
-
-        if (!capture.isCapturing()) {
-            return;
-        }
-
-        updateSpectrumCanvas();
-        updateSignalCanvas();
     }
 
     private void updateSpectrumCanvas() {
         float[] bins = capture.getFFTBins();
         float[] amplitudes = capture.getFFTAmplitudes();
 
-        assert  bins.length == amplitudes.length;
+        assert bins.length == amplitudes.length;
 
-        spectrumContext.beginPath();
+        final float maxVal = Floats.max(amplitudes);
+        final double spacing = 1.0d;
+        final double barWidth = (spectrumCanvas.getWidth() - ((bins.length + 1) * spacing)) / bins.length;
+        final double heightScale = spectrumCanvas.getHeight() / maxVal;
+
+        spectrumContext.setFill(Color.RED);
+
         for (int i = 0; i < amplitudes.length; i++) {
+            double startX = ((i + 1) * spacing + (i * barWidth));
+            double heightY = amplitudes[i] * heightScale;
+            double startY = spectrumCanvas.getHeight() - heightY;
 
+            spectrumContext.fillRect(startX, startY, barWidth, heightY);
         }
-        spectrumContext.closePath();
-        spectrumContext.stroke();
     }
 
     private void updateSignalCanvas() {
@@ -98,15 +108,16 @@ public class DebugController extends WindowController {
         final double pointDistance = signalCanvas.getWidth() / buffer.length;
         final double zeroY = signalCanvas.getHeight() / 2;
         final double heightScale = zeroY / 1.0d;
+        final double offsetY = 1.0d;
 
         signalContext.setStroke(Color.RED);
 
         signalContext.beginPath();
         for (int i = 0; i < buffer.length - 1; i++) {
-            int startX = (int)(i * pointDistance);
-            int startY = (int)(heightScale * (buffer[i] + 1.0d));
-            int endX = (int)((i + 1) * pointDistance);
-            int endY = (int)(heightScale * (buffer[i + 1] + 1.0d));
+            double startX = (i * pointDistance);
+            double startY = (heightScale * (buffer[i] + offsetY));
+            double endX = ((i + 1) * pointDistance);
+            double endY = (heightScale * (buffer[i + 1] + offsetY));
 
             signalContext.moveTo(startX, startY);
             signalContext.lineTo(endX, endY);
