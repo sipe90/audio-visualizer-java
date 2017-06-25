@@ -1,26 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.input.*?>
 <?import javafx.scene.*?>
 <?import javafx.geometry.*?>
-<?import java.lang.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox prefHeight="200.0" prefWidth="100.0" spacing="10.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.github.sipe90.visualizer.gui.controller.DeviceController">
+<VBox spacing="10.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.github.sipe90.visualizer.gui.controller.DeviceController">
 	<children>
-		<HBox prefHeight="18.0" prefWidth="547.0">
+		<HBox prefHeight="18.0">
 			<children>
 				<Label text="Select input device" />
 			</children>
 		</HBox>
-		<HBox prefHeight="292.0" prefWidth="547.0">
+		<HBox>
 			<children>
-				<VBox prefHeight="348.0" prefWidth="537.0" spacing="10.0">
+				<VBox spacing="10.0">
 					<children>
 						<ComboBox fx:id="deviceCombo" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" onAction="#selectDevice" prefHeight="25.0" prefWidth="380.0" />
-						<ListView fx:id="formatList" prefHeight="100.0" prefWidth="530.0" />
-						<HBox prefHeight="18.0" prefWidth="547.0">
+						<ListView fx:id="formatList" prefHeight="100.0" />
+						<HBox prefHeight="18.0">
 							<children>
 								<Label text="Select format" />
 							</children>
@@ -28,7 +26,7 @@
 								<Insets left="5.0" right="5.0" />
 							</padding>
 						</HBox>
-						<HBox prefHeight="93.0" prefWidth="537.0" spacing="10.0">
+						<HBox prefHeight="100.0" spacing="10.0">
 							<children>
 								<VBox prefHeight="200.0" prefWidth="100.0" spacing="5.0">
 									<children>
@@ -48,9 +46,13 @@
 										<ListView fx:id="channelsList" prefWidth="100.0" />
 									</children>
 								</VBox>
-								<VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="5.0">
+								<VBox alignment="TOP_CENTER" prefHeight="200.0" prefWidth="100.0">
 									<children>
-										<Label />
+                              <HBox alignment="TOP_CENTER" prefHeight="40.0">
+                                 <children>
+                                    <CheckBox fx:id="listenCheck" mnemonicParsing="false" prefHeight="17.0" prefWidth="60.0" text="Listen" />
+                                 </children>
+                              </HBox>
 										<Button fx:id="captureButton" alignment="CENTER" mnemonicParsing="false" onAction="#toggleCapture" prefHeight="30.0" prefWidth="60.0" text="Start">
 											<cursor>
 												<Cursor fx:constant="DEFAULT" />

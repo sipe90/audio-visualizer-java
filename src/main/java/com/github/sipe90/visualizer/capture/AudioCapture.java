@@ -48,7 +48,7 @@ public class AudioCapture {
 
     public AudioCapture() {}
 
-    public void startCapture(Mixer mixer, int sampleRate, int sampleSize, int channels) {
+    public void startCapture(Mixer mixer, int sampleRate, int sampleSize, int channels, boolean playback) {
 
         AudioFormat format = new AudioFormat(sampleRate, sampleSize, channels, true, true);
         DataLine.Info info = new DataLine.Info(TargetDataLine.class, format);
@@ -68,9 +68,13 @@ public class AudioCapture {
 
             fftProcessor = new FFTAudioProcessor(tarsosBufferSize, sampleRate, new HammingWindow());
             signalBuffer = new SignalBuffer(bufferSize);
+            audioPlayer = new AudioPlaybackProcessor(audioStream.getFormat());
 
             dispatcher.addAudioProcessor(signalBuffer);
             dispatcher.addAudioProcessor(fftProcessor);
+            if (playback) {
+                dispatcher.addAudioProcessor(audioPlayer);
+            }
         } catch (LineUnavailableException e) {
             throw new AudioCaptureException(e);
         }
@@ -86,7 +90,7 @@ public class AudioCapture {
             }
 
             AudioInputStream inputStream;
-            if (Transcoder.transcodingRequired(audioFile.getAbsolutePath(),targetFormat)) {
+            if (Transcoder.transcodingRequired(audioFile.getAbsolutePath(), targetFormat)) {
                 inputStream = Streamer.stream(audioFile.getAbsolutePath(), targetFormat);
             } else {
                 inputStream = AudioSystem.getAudioInputStream(audioFile);

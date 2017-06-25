@@ -22,6 +22,7 @@ public class DeviceController extends WindowController {
     @FXML private ListView<String> sampleRateList;
     @FXML private ListView<String> sampleSizeList;
     @FXML private ListView<String> channelsList;
+    @FXML private CheckBox listenCheck;
     @FXML private Button captureButton;
 
     private boolean capturing = false;
@@ -39,6 +40,7 @@ public class DeviceController extends WindowController {
         assert sampleRateList != null : "Button fx:id=\"sampleRateList\" was not injected: check your FXML file.";
         assert sampleSizeList != null : "Button fx:id=\"sampleSizeList\" was not injected: check your FXML file.";
         assert channelsList != null : "Button fx:id=\"channelsList\" was not injected: check your FXML file.";
+        assert listenCheck != null : "CheckBox fx:id=\"listenCheck\" was not injected: check your FXML file.";
         assert captureButton != null : "Button fx:id=\"captureButton\" was not injected: check your FXML file.";
 
         initRenderers();
@@ -112,7 +114,7 @@ public class DeviceController extends WindowController {
             int selectedChannels = selectedChannelsIdx == 0 ? 1 : 2;
 
             try {
-                capture.startCapture(mixer, selectedRate, selectedSize, selectedChannels);
+                capture.startCapture(mixer, selectedRate, selectedSize, selectedChannels, listenCheck.isSelected());
                 setCapturing(true);
             } catch (AudioCaptureException e) {
                 GuiUtil.showWarningDialog("Could not start capture", null, e.getLocalizedMessage());
